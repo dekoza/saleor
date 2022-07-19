@@ -3,7 +3,6 @@ from typing import Optional, Protocol, Union, cast
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AnonymousUser
-from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
 
 from ..account.models import User
@@ -31,14 +30,14 @@ class RequestWithUser(Protocol):
 
 def get_app(raw_auth_token) -> Optional[App]:
     tokens = AppToken.objects.filter(token_last_4=raw_auth_token[-4:]).values_list(
-        "id", "auth_token"
+        "app_id", "auth_token"
     )
-    token_ids = [
-        id for id, auth_token in tokens if check_password(raw_auth_token, auth_token)
+    app_ids = [
+        app_id
+        for app_id, auth_token in tokens
+        if check_password(raw_auth_token, auth_token)
     ]
-    return App.objects.filter(
-        Exists(tokens.filter(id__in=token_ids, app_id=OuterRef("pk"))), is_active=True
-    ).first()
+    return App.objects.filter(id__in=app_ids, is_active=True).first()
 
 
 def set_decoded_auth_token(request):
