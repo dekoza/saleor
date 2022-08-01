@@ -315,7 +315,7 @@ def fetch_variants(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
 
 def fetch_sale_channel_listings(
     sale_pks: Iterable[str],
-):
+) -> Dict[int, Dict[str, SaleChannelListing]]:
     channel_listings = SaleChannelListing.objects.filter(sale_id__in=sale_pks).annotate(
         channel_slug=F("channel__slug")
     )

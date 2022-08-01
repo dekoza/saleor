@@ -5,6 +5,7 @@ import graphene
 from django.core.serializers.json import Serializer as JSONSerializer
 from django.core.serializers.python import Serializer as PythonBaseSerializer
 from django.utils.functional import SimpleLazyObject
+from promise import Promise
 
 
 class PythonSerializer(PythonBaseSerializer):
@@ -78,6 +79,10 @@ class PayloadSerializer(JSONSerializer):
             # before we will be able to serialize it.
             if isinstance(data_to_serialize, SimpleLazyObject):
                 data_to_serialize = data_to_serialize._wrapped
+
+            # if we have a Promise, we need it fulfilled
+            if isinstance(data_to_serialize, Promise):
+                data_to_serialize = data_to_serialize.get()
 
             if isinstance(data_to_serialize, Iterable):
                 data[field_name] = python_serializer.serialize(
